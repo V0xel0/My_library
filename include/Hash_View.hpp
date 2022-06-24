@@ -25,8 +25,8 @@ struct Hash_View_32
 	{
 		const f32 waste = 0.2f;
 		buckets = (u32)((f32)count * (1.0f + waste));
-		keys = allocate<u64>(allocator, buckets);
-		values = allocate<s32>(allocator, buckets);
+		keys = push_type<u64>(allocator, buckets);
+		values = push_type<s32>(allocator, buckets);
 		reset();
 		elements = 0;
 	}

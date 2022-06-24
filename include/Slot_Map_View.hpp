@@ -43,7 +43,7 @@ struct Slot_Map_View
 	{
 		assert(elements > 0);
 		data.init(allocator, elements);
-		list = allocate<Slot_Map_Slot>(allocator, elements);
+		list = push_type<Slot_Map_Slot>(allocator, elements);
 		invalid_value = nullptr;
 	}
 	

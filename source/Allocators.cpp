@@ -20,7 +20,7 @@ void test_allocators()
 		Alloc_Arena arena = arena_from_allocator(&global_arena, MiB(32));
 		auto d1 = defer([&] { arena_reset(&global_arena); });
 
-		auto g = allocate<Som_Data>(&arena);
+		auto g = push_type<Som_Data>(&arena);
 		// Array_View<SomData>arr = { 3, 0, allocate<SomData>(&arena, 3)};
 		Array_View<Som_Data>arr{};
 		arr.init(&arena, 3);
@@ -36,7 +36,7 @@ void test_allocators()
 			String_View view {str, size};
 		}
 
-		arr = { 9, arr.count, arena_resize_last(&arena, arr.data, 9) };
+		arr = { 9, arr.count, (Som_Data *)arena_resize_last(&arena, arr.data, 9) };
 		arr.push({5, 'd'});
 		arr.push({7, 'e'});
 	}
@@ -54,11 +54,11 @@ void test_allocators()
 
 		auto alignmentH = alignof(Alloc_Stack_Header);
 
-		auto el = allocate<Som_Data>(&stack);
+		auto el = push_type<Som_Data>(&stack);
 		assert(stack.curr_offset == 24 && stack.last_header_offset == 0 && "FAILED");
-		auto el1 = allocate<byte>(&stack, 11);
+		auto el1 = push_type<byte>(&stack, 11);
 		assert(stack.curr_offset == 51 && stack.last_header_offset == 24 && "FAILED");
-		auto el2 = allocate<Som_Data>(&stack);
+		auto el2 = push_type<Som_Data>(&stack);
 		assert(stack.curr_offset == 80 && stack.last_header_offset == 56 && "FAILED");
 
 		stack_pop(&stack);
@@ -68,13 +68,13 @@ void test_allocators()
 		stack_pop(&stack);
 		assert(stack.curr_offset == 0 && stack.last_header_offset == 0 && "FAILED");
 
-		el1 = allocate<byte>(&stack, 11);
+		el1 = push_type<byte>(&stack, 11);
 		assert(stack.curr_offset == 27 && stack.last_header_offset == 0 && "FAILED");
-		el = allocate<Som_Data>(&stack);
+		el = push_type<Som_Data>(&stack);
 		assert(stack.curr_offset == 56 && stack.last_header_offset == 32 && "FAILED");
-		auto el3 = allocate<byte>(&stack, 11);
+		auto el3 = push_type<byte>(&stack, 11);
 		assert(stack.curr_offset == 83 && stack.last_header_offset == 56 && "FAILED");
-		el = allocate<Som_Data>(&stack);
+		el = push_type<Som_Data>(&stack);
 		assert(stack.curr_offset == 112 && stack.last_header_offset == 88 && "FAILED");
 
 		stack_pop(&stack);
@@ -86,12 +86,12 @@ void test_allocators()
 		stack_pop(&stack);
 		assert(stack.curr_offset == 0 && stack.last_header_offset == 0 && "FAILED");
 
-		el1 = allocate<byte>(&stack, 11);
+		el1 = push_type<byte>(&stack, 11);
 		stack_pop(&stack);
-		el = allocate<Som_Data>(&stack);
-		el3 = allocate<byte>(&stack, 11);
+		el = push_type<Som_Data>(&stack);
+		el3 = push_type<byte>(&stack, 11);
 		stack_pop(&stack);
-		el = allocate<Som_Data>(&stack);
+		el = push_type<Som_Data>(&stack);
 		stack_pop(&stack);
 		stack_pop(&stack);
 		assert(stack.curr_offset == 0 && stack.last_header_offset == 0 && "FAILED");
@@ -108,39 +108,39 @@ void test_allocators()
 		Alloc_Pool pool = pool_from_allocator( &global_arena, KiB(1), sizeof(Som_Data), alignof(Som_Data) );
 
 		{
-			Som_Data *el  = allocate<Som_Data>(&pool);
-			Som_Data *el1 = allocate<Som_Data>(&pool);
-			Som_Data *el2 = allocate<Som_Data>(&pool);
-			Som_Data *el3 = allocate<Som_Data>(&pool);
-			Som_Data *el4 = allocate<Som_Data>(&pool);
+			Som_Data *el  = push_type<Som_Data>(&pool);
+			Som_Data *el1 = push_type<Som_Data>(&pool);
+			Som_Data *el2 = push_type<Som_Data>(&pool);
+			Som_Data *el3 = push_type<Som_Data>(&pool);
+			Som_Data *el4 = push_type<Som_Data>(&pool);
 
 			// Allocate, free and allocate again to same block, ver.1
 			{
 				free_block(&pool, el2);
-				Som_Data *el_new = allocate<Som_Data>(&pool);
+				Som_Data *el_new = push_type<Som_Data>(&pool);
 				assert(el_new == el2 && "FAILED - it should be in the same block!");
 			}
 			// Allocate, free and allocate again to same block, ver.2
 			{
 				free_block(&pool, el);
-				Som_Data *el_new = allocate<Som_Data>(&pool);
+				Som_Data *el_new = push_type<Som_Data>(&pool);
 				assert(el_new == el && "FAILED - it should be in the same block!");
 			}
 			// Allocate, free and allocate again to same block, ver.3
 			{
 				free_block(&pool, el4);
-				Som_Data *el_new = allocate<Som_Data>(&pool);
+				Som_Data *el_new = push_type<Som_Data>(&pool);
 				assert(el_new == el4 && "FAILED - it should be in the same block!");
 			}
 
 			// Reset all and allocate again
 			{
 				reset_list(&pool);
-				Som_Data *el_new  = allocate<Som_Data>(&pool);
-				Som_Data *el_new1 = allocate<Som_Data>(&pool);
-				Som_Data *el_new2 = allocate<Som_Data>(&pool);
-				Som_Data *el_new3 = allocate<Som_Data>(&pool);
-				Som_Data *el_new4 = allocate<Som_Data>(&pool);
+				Som_Data *el_new  = push_type<Som_Data>(&pool);
+				Som_Data *el_new1 = push_type<Som_Data>(&pool);
+				Som_Data *el_new2 = push_type<Som_Data>(&pool);
+				Som_Data *el_new3 = push_type<Som_Data>(&pool);
+				Som_Data *el_new4 = push_type<Som_Data>(&pool);
 				assert(el_new  == el  && "FAILED - it should be in the same block!");
 				assert(el_new1 == el1 && "FAILED - it should be in the same block!");
 				assert(el_new2 == el2 && "FAILED - it should be in the same block!");
@@ -152,10 +152,10 @@ void test_allocators()
 		// Different size, gap check (4 byte data in 8 byte block)
 		{
 			reset_list(&pool);
-			s32 *smol  = allocate<s32>(&pool);
-			s32 *smol1 = allocate<s32>(&pool);
-			s32 *smol2 = allocate<s32>(&pool);
-			s32 *smol3 = allocate<s32>(&pool);
+			s32 *smol  = push_type<s32>(&pool);
+			s32 *smol1 = push_type<s32>(&pool);
+			s32 *smol2 = push_type<s32>(&pool);
+			s32 *smol3 = push_type<s32>(&pool);
 			byte *end = pool.base + pool.max_size;
 			assert( (byte *)smol  == end - 1 * sizeof(Som_Data) && "FAILED - there should be padding gap between blocks!");
 			assert( (byte *)smol1 == end - 2 * sizeof(Som_Data) && "FAILED - there should be padding gap between blocks!");

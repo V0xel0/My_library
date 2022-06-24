@@ -1,12 +1,19 @@
 #pragma once
+
 #include <cassert>
 #include <cstring>
 
 #include "Utils.hpp"
 
-//TODO: CUSTOM MEMSET?
-//TODO: Consider removing templates - use init functions for views anyway and maybe just add another function for single el
+//TODO: CUSTOM MEMSET
 //TODO: Consider removing memsetting or leaving it only for reset 
+
+template <typename T>
+[[nodiscard]]
+inline T *push_type(auto *allocator, u32 count = 1)
+{
+	return ( T*)allocate(allocator, sizeof(T) * count, alignof(T));
+} 
 
 struct Alloc_Arena_Temp
 {
@@ -27,32 +34,30 @@ struct Alloc_Arena
 [[nodiscard]]
 inline Alloc_Arena arena_from_allocator(auto* allocator, const u64 max_size)
 {
-	return { max_size, allocate<byte>(allocator, max_size) };
+	return { max_size, (byte *)allocate(allocator, max_size) };
 }
 
-template<typename T>
 [[nodiscard]]
-inline T *allocate(Alloc_Arena *arena, const u64 count = 1, const u64 alignment = alignof(T))
+inline void *allocate(Alloc_Arena *arena, const u64 size_bytes, const u64 alignment = alignof(u64))
 {
 	arena->curr_offset = AlignAddressPow2((u64)arena->base + arena->curr_offset, alignment);
 	arena->curr_offset -= (u64)arena->base;
-	assert( ( (arena->curr_offset + sizeof(T)*count) <= arena->max_size) && "No more memory!" );
+	assert( ( (arena->curr_offset + size_bytes) <= arena->max_size) && "No more memory!" );
 
-	T *out = (T*) ((byte*)arena->base + arena->curr_offset);
+	void *out = (void*) ((byte*)arena->base + arena->curr_offset);
 	arena->prev_offset = arena->curr_offset;
-	arena->curr_offset += sizeof(T)*count;
+	arena->curr_offset += size_bytes;
 
 	return out;
 }
 
-template<typename T>
 [[nodiscard]]
-inline T *arena_resize_last(Alloc_Arena *arena, T *old_memory, const u64 count = 1)
+inline void *arena_resize_last(Alloc_Arena *arena, void *old_memory, const u64 size_bytes)
 {
 	assert((byte *)old_memory == arena->base + arena->prev_offset && "This is not last allocated memory");
-	assert( ( (arena->curr_offset + sizeof(T) * count) <= arena->max_size) && "No more memory!" );
+	assert( ( (arena->curr_offset + size_bytes) <= arena->max_size) && "No more memory!" );
 
-	auto new_size = arena->prev_offset + count * sizeof(T);
+	auto new_size = arena->prev_offset + size_bytes;
 	auto old_size = arena->curr_offset - arena->prev_offset;
 
 	if(new_size < old_size)
@@ -76,7 +81,7 @@ inline auto arena_push_string(Alloc_Arena *arena, const char *string)
 	for(const char *at = string; *at; at++)
 		size++;
 
-	char *src = allocate<char>(arena, size);
+	char *src = (char *)allocate(arena, size);
 
 	for(s32 i = 0; i < size; i++)
 		src[i] = string[i];
@@ -125,12 +130,11 @@ struct Alloc_Stack
 [[nodiscard]]
 inline Alloc_Stack stack_from_allocator(auto* allocator, const u64 max_size)
 {
-	return { max_size, allocate<byte>(allocator, max_size) };
+	return { max_size, (byte *)allocate(allocator, max_size) };
 }
 
-template<typename T>
 [[nodiscard]]
-inline T *allocate(Alloc_Stack *stack, const u64 count = 1, const u64 alignment = alignof(T))
+inline void *allocate(Alloc_Stack *stack, const u64 size_bytes, const u64 alignment = alignof(u64))
 {
 	auto header_start = AlignAddressPow2((u64)stack->base + stack->curr_offset, alignof(Alloc_Stack_Header));
 	header_start -= (u64)stack->base;
@@ -141,10 +145,10 @@ inline T *allocate(Alloc_Stack *stack, const u64 count = 1, const u64 alignment 
 
 	auto data_offset =  AlignAddressPow2((u64)stack->base + header_start + sizeof(Alloc_Stack_Header), alignment);
 	data_offset -= (u64)stack->base;
-	assert( ( (data_offset + sizeof(T)*count) <= stack->max_size) && "No more memory!" );
+	assert( ( (data_offset + size_bytes) <= stack->max_size) && "No more memory!" );
 
-	T *out = (T*) ((byte*)stack->base + data_offset);
-	stack->curr_offset = sizeof(T) * count + data_offset;
+	void *out = (void*) ((byte*)stack->base + data_offset);
+	stack->curr_offset = size_bytes + data_offset;
 
 	return out;
 }
@@ -220,22 +224,21 @@ inline Alloc_Pool create_pool(byte *const mem_buffer, const u64 max_size, const 
 [[nodiscard]]
 inline Alloc_Pool pool_from_allocator(auto* allocator, const u64 max_size_bytes, const u64 block_size, const u64 alignment)
 {
-	return create_pool(allocate<byte>(allocator, max_size_bytes), max_size_bytes, block_size, alignment);
+	return create_pool((byte *)allocate(allocator, max_size_bytes), max_size_bytes, block_size, alignment);
 }
 
 //? The allocation must fit in a single block size!
 //?(note) Already tried to have allocations that spans through multiple blocks - its dumb for this type of allocator!(freeing)
-template<typename T>
 [[nodiscard]]
-inline T *allocate(Alloc_Pool *pool, const u64 count = 1, const u64 alignment = alignof(T))
+inline void *allocate(Alloc_Pool *pool, const u64 size_bytes, const u64 alignment = alignof(u64))
 {
-	assert(count * sizeof(T) <= pool->block_size && "Too much elements for a single block!");
+	assert(size_bytes <= pool->block_size && "Too much elements for a single block!");
 	assert(alignment <= pool->block_size && "Alignment is bigger than block size!");
 
 	Pool_Free_Node *head_node = get_node(pool, pool->head_block);
 	pool->head_block = head_node->next;
 	
-	return (T *)memset(head_node, 0, pool->block_size);
+	return memset(head_node, 0, pool->block_size);
 }
 //? Adding to a pool list
 inline void free_block(Alloc_Pool *pool, void *ptr)

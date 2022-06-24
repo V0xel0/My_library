@@ -64,14 +64,14 @@ constexpr u32 trunc_u64_to_u32(u64 val)
 	return (Result);
 };
 
-template <typename T, s64 N>
-constexpr s64 array_count_64(const T (&array)[N]) noexcept
+template <typename T, u64 N>
+constexpr u64 array_count_64(const T (&array)[N]) noexcept
 {
 	return N;
 }
 
-template <typename T, s32 N>
-constexpr s32 array_count_32(const T (&array)[N]) noexcept
+template <typename T, u32 N>
+constexpr u32 array_count_32(const T (&array)[N]) noexcept
 {
 	return N;
 }

@@ -36,6 +36,12 @@ struct Array_View
 		data[count++] = el;
 	}
 
+	template<typename... Args>
+	constexpr void push_multiple(Args&&... args) 
+	{
+		(push(args), ...); // POD always assume no need to forward
+	}
+
 	constexpr void pop()
 	{
 		assert(count > 0);
@@ -68,12 +74,22 @@ struct Array_View
 		return data + count;
 	}
 
-	inline void init(const auto& allocator, const s32 elements)
+	inline void init(auto* allocator, const s32 elements)
 	{
 		assert(elements > 0);
-		data = allocate<T>(&allocator, elements);
+		data = (T*)allocate(allocator, elements * sizeof(T));
 		size = elements;
 		count = 0;
+	}
+
+	template<typename... Args>
+	inline void init(auto* allocator, Args&&... args) 
+	{
+		constexpr u64 elements = sizeof...(Args);
+		data = (T*)allocate(allocator, elements * sizeof(T));
+		size = elements;
+		count = 0;
+		(push(args), ...);
 	}
 
 	void reset()

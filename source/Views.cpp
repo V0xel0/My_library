@@ -19,7 +19,7 @@ void test_views()
 
 	for(int i = 0; i < array.size; ++i)
 	{
-		array[i] = { i, i + 1.69f, (i + 141) % 173 };
+		array[i] = { i, i + 1.69f, (char)((i + 141) % 173) };
 	}
 
 	for(int i = 0; i < array.size; ++i)
@@ -29,7 +29,7 @@ void test_views()
 	
 	for(int i = 0; i < array.size; ++i)
 	{
-		array.push( { i, i + 1.69f, (i + 141) % 173 } );
+		array.push( { i, i + 1.69f, (char)((i + 141) % 173 )} );
 	}
 
 	// Overflow check

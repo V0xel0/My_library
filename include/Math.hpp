@@ -457,8 +457,8 @@ namespace lib
 		return  length_vec( cross(a, b) ) / length_vec(b);
 	}
 
-	//? For all vector-math functions (cross etc.) operations, Vec4 is assumed to behave like Vec3 in homogeneous space,
-	//? therefore its fourth component must be 0! 
+	//? For 3D CG, Vec4 is assumed to behave like Vec3 in homogeneous space, 
+	//? therefore its fourth component must be 0 to yield proper results from most operations in CG
 	//? For operations with Mat4 user should choose wheter Vec4 represents point (w=1) or vector (w=0)
 	union alignas(__m128) Vec4
 	{

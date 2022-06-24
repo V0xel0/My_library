@@ -54,7 +54,7 @@ struct Bulk_List_View
 	{
 		assert(elements > 0);
 		data.init(allocator, elements);
-		list = allocate<Bulk_List_Item>(allocator, elements);
+		list = push_type<Bulk_List_Item>(allocator, elements);
 		invalid_value = nullptr;
 
 		reset();
