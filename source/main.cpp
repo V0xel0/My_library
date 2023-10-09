@@ -20,7 +20,7 @@ int main( int argc, char* argv[])
 {
 	// New tests go through Catch2
 	int result = Catch::Session().run( argc, argv );
-
+	
 	// Old tests
 	test_allocators();
 	test_views();

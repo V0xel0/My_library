@@ -27,6 +27,8 @@ struct Bulk_List_Item
 
 //? "View" means POD is assumed, everything is passed/returned by copy(value), no internal allocation, fixed size
 
+//TODO: Consider just using stack for getting next free id
+
 template<typename T>
 struct Bulk_List_View
 {

@@ -41,7 +41,8 @@ constexpr f64 PI64 = 3.14159265359;
 
 #define AlignValuePow2(Value, Alignment) ((Value) + ((Alignment)-1)) & -(Alignment)
 
-#define TestBit(El, Pos) ((El) & (1 << (Pos)))
+#define TestBitPos(El, Pos) ((El) & (1 << (Pos))) // returns position or 0 if not set
+#define TestBit(El,Pos) (((El) >> (Pos)) & 1) // return 0/1 if notset/set
 
 template <typename F>
 struct DummyDefer
