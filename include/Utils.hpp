@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+// version: 0.0.1 19.02.2024
+
 using f32 = float;
 using f64 = double;
 
@@ -56,6 +58,10 @@ template <typename F>
 DummyDefer<F> defer(F f)
 {
 	return DummyDefer<F>(f);
+}
+
+const auto* get_const_ptr(const auto& obj) {
+    return &obj;
 }
 
 constexpr u32 trunc_u64_to_u32(u64 val)
