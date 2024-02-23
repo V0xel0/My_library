@@ -5,6 +5,8 @@
 
 #include "Utils.hpp"
 
+// Version 0.0.1 23.02.2024
+
 //TODO: Extend String_View implementation
 
 template<typename T>
@@ -88,7 +90,7 @@ struct Array_View
 		constexpr u64 elements = sizeof...(Args);
 		data = (T*)allocate(allocator, elements * sizeof(T));
 		size = elements;
-		count = 0;
+		count = elements;
 		(push(args), ...);
 	}
 
